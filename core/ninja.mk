@@ -1,4 +1,8 @@
-NINJA ?= prebuilts/ninja/$(HOST_PREBUILT_TAG)/ninja
+ifeq ($(filter address,$(SANITIZE_HOST)),)
+NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/bin/ninja
+else
+NINJA ?= prebuilts/build-tools/$(HOST_PREBUILT_TAG)/asan/bin/ninja
+endif
 
 ifeq ($(USE_SOONG),true)
 USE_SOONG_FOR_KATI := true
@@ -147,7 +151,7 @@ $(sort $(DEFAULT_GOAL) $(ANDROID_GOALS)) : ninja_wrapper
 .PHONY: ninja_wrapper
 ninja_wrapper: $(COMBINED_BUILD_NINJA) $(MAKEPARALLEL)
 	@echo Starting build with ninja
-	+$(hide) export NINJA_STATUS="$(NINJA_STATUS)" && source $(KATI_ENV_SH) && $(NINJA_MAKEPARALLEL) $(NINJA) $(NINJA_GOALS) -C $(TOP) -f $(COMBINED_BUILD_NINJA) $(NINJA_ARGS)
+	+$(hide) export NINJA_STATUS="$(NINJA_STATUS)" && source $(KATI_ENV_SH) && exec $(NINJA_MAKEPARALLEL) $(NINJA) -d keepdepfile $(NINJA_GOALS) -C $(TOP) -f $(COMBINED_BUILD_NINJA) $(NINJA_ARGS)
 
 # Dummy Android.mk and CleanSpec.mk files so that kati won't recurse into the
 # out directory
